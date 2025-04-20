@@ -4,34 +4,55 @@ import quiz from "../data/quiz";
 
 function App() {
   const [questions, setQuestions] = useState(quiz);
-  const [currentQuestionId, setCurrentQuestion] = useState(1);
+  const [currentQuestionId, setCurrentQuestionId] = useState(1);
   const [score, setScore] = useState(0);
+  const [gameStatus, setGameStatus] = useState("playing"); // 'playing' or 'finished'
+  
+  // Find the current question object
   const currentQuestion = questions.find((q) => q.id === currentQuestionId);
 
-  function handleQuestionAnswered(correct) {
+  function handleQuestionAnswered(isCorrect) {
+    // Update score if answer was correct
+    if (isCorrect) {
+      setScore(score + 1);
+    }
+
+    // Move to next question or end game
     if (currentQuestionId < questions.length) {
-      setCurrentQuestion((currentQuestionId) => currentQuestionId + 1);
+      setCurrentQuestionId(currentQuestionId + 1);
     } else {
-      setCurrentQuestion(null);
+      setGameStatus("finished");
     }
-    if (correct) {
-      setScore((score) => score + 1);
-    }
+  }
+
+  function restartGame() {
+    setCurrentQuestionId(1);
+    setScore(0);
+    setGameStatus("playing");
   }
 
   return (
     <main>
       <section>
-        {currentQuestion ? (
-          <Question
-            question={currentQuestion}
-            onAnswered={handleQuestionAnswered}
-          />
-        ) : (
+        {gameStatus === "finished" ? (
           <>
             <h1>Game Over</h1>
-            <h2>Total Correct: {score}</h2>
+            <h2>Total Correct: {score}/{questions.length}</h2>
+            <button onClick={restartGame}>Play Again</button>
           </>
+        ) : currentQuestion ? (
+          <>
+            <div className="progress">
+              Question {currentQuestionId} of {questions.length} | Score: {score}
+            </div>
+            <Question
+              question={currentQuestion}
+              onAnswered={handleQuestionAnswered}
+              key={currentQuestionId} // Important for resetting timer
+            />
+          </>
+        ) : (
+          <div>Loading questions...</div>
         )}
       </section>
     </main>
